@@ -26,10 +26,10 @@ def dump_toc(fp):
     toc = get_toc(fp)
 
     for x,y,z in toc:
-        click.echo(x,'%s' % y,z)
+        click.echo(f'{x} {y} {z}')
 
 def parse_user_toc(fp):
-    r = re.compile('(\d+) *(.*?) *(\d+) *$')
+    r = re.compile('^\s*(\d+)\s*(.*?)\s*(\d+)\s*$')
 
     toc = []
     cur_depth = -1
