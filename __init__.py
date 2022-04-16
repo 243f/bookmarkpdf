@@ -26,7 +26,7 @@ def dump_toc(fp):
     toc = get_toc(fp)
 
     for x,y,z in toc:
-        print(x,'%s' % y,z)
+        click.echo(x,'%s' % y,z)
 
 def parse_user_toc(fp):
     r = re.compile('(\d+) *(.*?) *(\d+) *$')
@@ -35,28 +35,27 @@ def parse_user_toc(fp):
     cur_depth = -1
 
     with open(fp, 'r') as f:
-        for line in f:
+        for i, line in enumerate(f, 1):
             if line.strip() == '':
                 continue
 
             match = r.search(line)
             if not match:
-                print(line)
+                click.echo(f'{i}: {line}', line, err=True)
                 raise TypeError("Each line must have the form `depth` `title` `page num`")
             x,y,z = match.groups()
 
             depth = int(x)
             if depth < 0:
-                print(line)
+                click.echo(f'{i}: {line}', line, err=True)
                 raise TypeError("Each line must have the form `depth` `title` `page num`")
             if depth - cur_depth > 1:
-                print(depth, cur_depth)
-                print(line)
+                click.echo(f'{i}: {line}', line, err=True)
                 raise TypeError("Depth must start at 0, and only increase by one")
 
             num = int(z)-1
             if num < 0:
-                print(line)
+                click.echo(f'{i}: {line}', line, err=True)
                 raise TypeError("Page number must be positive")
 
             cur_depth = depth
@@ -87,7 +86,7 @@ def update_toc(toc, fp_in, fp_out):
             bookmark_stack.append(last)
         while depth+1 < len(bookmark_stack):
             bookmark_stack.pop()
-        print(title, num)
+        click.echo(title, num)
         last = writer.addBookmark(title, num, parent=bookmark_stack[-1])
 
     with open(fp_out, 'wb') as fw:
