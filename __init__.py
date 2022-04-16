@@ -4,6 +4,15 @@ import click
 import os
 import re
 
+
+class FormatError(click.ClickException):
+    def __init__(self, i, line, message):
+        self.i = i
+        self.line = line.strip('\n')
+        self.message = message
+        self.exit_code = -1
+        super().__init__(message)
+
 def nested_list_to_depth(lst, out=None, depth=0):
     if out is None:
         out = []
@@ -41,22 +50,18 @@ def parse_user_toc(fp):
 
             match = r.search(line)
             if not match:
-                click.echo(f'{i}: {line}', line, err=True)
-                raise TypeError("Each line must have the form `depth` `title` `page num`")
+                raise FormatError(i, line, "Each line must have the form `depth` `title` `page num`")
             x,y,z = match.groups()
 
             depth = int(x)
             if depth < 0:
-                click.echo(f'{i}: {line}', line, err=True)
-                raise TypeError("Each line must have the form `depth` `title` `page num`")
+                raise FormatError(i, line, "Each line must have the form `depth` `title` `page num`")
             if depth - cur_depth > 1:
-                click.echo(f'{i}: {line}', line, err=True)
-                raise TypeError("Depth must start at 0, and only increase by one")
+                raise FormatError(i, line, "Depth must start at 0, and only increase by one")
 
             num = int(z)-1
             if num < 0:
-                click.echo(f'{i}: {line}', line, err=True)
-                raise TypeError("Page number must be positive")
+                raise FormatError(i, line, "Page number must be positive")
 
             cur_depth = depth
             toc.append((depth, y, num))
@@ -111,7 +116,12 @@ def set_toc(toc, pdf_in, pdf_out):
     if pdf_out is None:
         split = os.path.splitext(pdf_in)
         pdf_out = split[0] + '_bookmarked' + split[1]
-    toc = parse_user_toc(toc)
+    try:
+        toc = parse_user_toc(toc)
+    except FormatError as e:
+        click.echo(f'{e.i}:{e.line}', err=True)
+        raise e
+
     update_toc(toc, pdf_in, pdf_out)
 
 if __name__ == '__main__':
