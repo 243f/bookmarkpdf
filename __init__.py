@@ -4,7 +4,6 @@ import click
 import os
 import re
 
-
 class FormatError(click.ClickException):
     def __init__(self, i, line, message):
         self.i = i
@@ -110,12 +109,13 @@ def dump(path):
 
 @cli.command()
 @click.option('-t', '--toc', help='path to table of contents file', required=True)
-@click.option('-i', '--pdf_in', help='path to input pdf file', required=True)
-@click.option('-o', '--pdf_out', default=None, help='path to output pdf file')
+@click.option('-i', '--in', 'pdf_in', help='path to input pdf file', required=True)
+@click.option('-o', '--out', 'pdf_out', default=None, help='path to output pdf file')
 def set_toc(toc, pdf_in, pdf_out):
     if pdf_out is None:
         split = os.path.splitext(pdf_in)
         pdf_out = split[0] + '_bookmarked' + split[1]
+
     try:
         toc = parse_user_toc(toc)
     except FormatError as e:
