@@ -86,7 +86,7 @@ def update_toc(toc, fp_in, fp_out):
             bookmark_stack.append(last)
         while depth+1 < len(bookmark_stack):
             bookmark_stack.pop()
-        click.echo(title, num)
+        click.echo(f'{title} {num}')
         last = writer.addBookmark(title, num, parent=bookmark_stack[-1])
 
     with open(fp_out, 'wb') as fw:
