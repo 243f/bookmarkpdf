@@ -68,35 +68,33 @@ def parse_user_toc(fp):
     return toc
 
 def update_toc(toc, fp_in, fp_out):
-    fr = open(fp_in, 'rb')
-    reader = PdfFileReader(fr)
-    writer = PdfFileWriter()
-    writer.cloneDocumentFromReader(reader)
+    with open(fp_in, 'rb') as fr:
+        reader = PdfFileReader(fr)
+        writer = PdfFileWriter()
+        writer.cloneDocumentFromReader(reader)
 
-    with open(fp_out, 'wb') as fw:
-        # for some reason we can't touch the
-        # outline without writing first
-        writer.write(fw)
+        with open(fp_out, 'wb') as fw:
+            # for some reason we can't touch the
+            # outline without writing first
+            writer.write(fw)
 
-    outline = writer.getOutlineRoot()
+        outline = writer.getOutlineRoot()
 
-    outline.clear()
-    outline.__class__ = TreeObject
+        outline.clear()
+        outline.__class__ = TreeObject
 
-    bookmark_stack = [None]
-    last = None
-    for depth, title, num in toc:
-        if depth+1 > len(bookmark_stack):
-            bookmark_stack.append(last)
-        while depth+1 < len(bookmark_stack):
-            bookmark_stack.pop()
-        click.echo(f'{title} {num}')
-        last = writer.addBookmark(title, num, parent=bookmark_stack[-1])
+        bookmark_stack = [None]
+        last = None
+        for depth, title, num in toc:
+            if depth+1 > len(bookmark_stack):
+                bookmark_stack.append(last)
+            while depth+1 < len(bookmark_stack):
+                bookmark_stack.pop()
+            click.echo(f'{title} {num}')
+            last = writer.addBookmark(title, num, parent=bookmark_stack[-1])
 
-    with open(fp_out, 'wb') as fw:
-        writer.write(fw)
-
-    fr.close()
+        with open(fp_out, 'wb') as fw:
+            writer.write(fw)
 
 @click.group()
 def cli():
