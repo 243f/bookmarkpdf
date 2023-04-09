@@ -1,5 +1,6 @@
-from PyPDF4 import PdfFileReader, PdfFileWriter
+from PyPDF4 import PdfFileReader, PdfFileWriter, PdfFileMerger
 from PyPDF4.generic import TreeObject
+from PyPDF4.utils import PdfReadError
 import click
 import os
 import re
@@ -76,7 +77,10 @@ def update_toc(toc, fp_in, fp_out):
         with open(fp_out, 'wb') as fw:
             # for some reason we can't touch the
             # outline without writing first
-            writer.write(fw)
+            try:
+                writer.write(fw)
+            except PdfReadError as e:
+                print("This error may be resolved using the clean command")
 
         outline = writer.getOutlineRoot()
 
@@ -121,6 +125,18 @@ def set_toc(toc, pdf_in, pdf_out):
         raise e
 
     update_toc(toc, pdf_in, pdf_out)
+
+@cli.command(help='Simply rewrites the pdf file but in a format that may lead to fewer bugs')
+@click.option('-i', '--in', 'fp_in', help='path to pdf file', required=True)
+@click.option('-o', '--out', 'fp_out', default=None, help='path to output')
+def clean(fp_in, fp_out):
+    if fp_out is None:
+        split = os.path.splitext(fp_in)
+        fp_out = split[0] + '_clean' + split[1]
+
+    merger = PdfFileMerger(strict=False)
+    merger.append(fp_in)
+    merger.write(fp_out)
 
 if __name__ == '__main__':
     cli()
