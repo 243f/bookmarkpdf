@@ -80,7 +80,8 @@ def update_toc(toc, fp_in, fp_out):
             try:
                 writer.write(fw)
             except PdfReadError as e:
-                print("This error may be resolved using the clean command")
+                msg = f'{e} This error may be resolved using the clean command.'
+                raise click.ClickException(msg)
 
         outline = writer.getOutlineRoot()
 
